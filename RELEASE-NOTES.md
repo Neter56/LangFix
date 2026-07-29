@@ -1,0 +1,36 @@
+# Release notes
+
+All notable changes to LangFix are listed here. Versions follow [semantic versioning](https://semver.org).
+
+## 1.0.1
+
+**Settings GUI**
+
+- New **Settings…** dialog in the tray menu — edit every option without touching JSON.
+  - Hotkey picker: click the box and press the chord you want (`Ctrl`, `Alt`, `Shift`, `Win` plus
+    any key, including `F10`, `Tab` and `Pause`), or press **Reset** to go back to `F10`.
+  - Checkboxes for *paste the result over the selection*, *restore the previous clipboard
+    contents*, *show a tray notification after each conversion* and *start with Windows*.
+  - **Open settings.json** link for the cases where hand-editing is still preferable.
+- The dialog reads `%APPDATA%\LangFix\settings.json` when it opens, so changes made outside the
+  app are shown, and writes the same file on **Save**. The new hotkey is registered immediately.
+- The global hotkey is released while the dialog is open, so pressing a chord assigns it instead
+  of converting the selection behind the dialog.
+- The tray menu item **Edit settings…** became **Settings…**; **Reload settings** is still there
+  for changes made in an external editor.
+
+## 1.0.0
+
+First released version.
+
+- System-wide hotkey (`F10` by default) converts the selected text between the **US English** and
+  the **Windows Hebrew (SI-1452)** keyboard layouts, in place.
+- Direction is auto-detected per selection, so mixed text such as `Eמעךןדי בישרשבאקרד` is fixed
+  correctly.
+- Clipboard round-trip (`Ctrl+C` → convert → `Ctrl+V`) runs on a worker thread, with the previous
+  clipboard contents restored afterwards.
+- Tray icon with *Convert selection now*, *Paste result automatically*, *Start with Windows*,
+  settings and *Exit*.
+- Settings stored in `%APPDATA%\LangFix\settings.json`.
+- `--selftest` command-line switch verifies the layout mapping.
+- Application icon embedded in `LangFix.exe`.
