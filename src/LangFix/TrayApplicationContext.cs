@@ -37,7 +37,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
         };
 
         var menu = new ContextMenuStrip();
-        menu.Items.Add(new ToolStripMenuItem("Convert selection now", null, (_, _) => ConvertSelection()));
+        menu.Items.Add(new ToolStripMenuItem("Convert selection now", null, (_, _) => ConvertSelection(HotKeyAction.ConvertLayout)));
+        menu.Items.Add(new ToolStripMenuItem("Fix CAPS LOCK in selection", null, (_, _) => ConvertSelection(HotKeyAction.FixCase)));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(_autoPasteItem);
         menu.Items.Add(_startupItem);
@@ -52,25 +53,31 @@ internal sealed class TrayApplicationContext : ApplicationContext
             ContextMenuStrip = menu,
             Visible = true,
         };
-        _notifyIcon.DoubleClick += (_, _) => ConvertSelection();
+        _notifyIcon.DoubleClick += (_, _) => ConvertSelection(HotKeyAction.ConvertLayout);
 
         _hotKeyWindow = new HotKeyWindow();
-        _hotKeyWindow.HotKeyPressed += (_, _) => ConvertSelection();
+        _hotKeyWindow.HotKeyPressed += (_, action) => ConvertSelection(action);
 
-        RegisterHotKey(showErrors: true);
+        RegisterHotKeys(showErrors: true);
         UpdateTooltip();
     }
 
-    private void RegisterHotKey(bool showErrors)
+    private void RegisterHotKeys(bool showErrors)
+    {
+        Register(HotKeyAction.ConvertLayout, _settings.GetHotKey(), showErrors);
+        Register(HotKeyAction.FixCase, _settings.GetCapsHotKey(), showErrors);
+    }
+
+    private void Register(HotKeyAction action, HotKeyDefinition hotKey, bool showErrors)
     {
         try
         {
-            _hotKeyWindow.Register(_settings.GetHotKey());
+            _hotKeyWindow.Register(action, hotKey);
         }
         catch (Win32Exception ex) when (showErrors)
         {
             MessageBox.Show(
-                $"{ex.Message}\n\nChange \"HotKey\" in:\n{Settings.FilePath}\n\nLangFix keeps running - use the tray menu to convert.",
+                $"{ex.Message}\n\nChange the hotkey in the Settings window, or in:\n{Settings.FilePath}\n\nLangFix keeps running - use the tray menu to convert.",
                 "LangFix",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
@@ -81,7 +88,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         }
     }
 
-    private void ConvertSelection()
+    private void ConvertSelection(HotKeyAction action)
     {
         // The clipboard round-trip blocks for up to a second. Doing that inside the WM_HOTKEY
         // handler stops our message pump, which in turn stalls the Ctrl+C of the foreground app
@@ -98,7 +105,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         {
             try
             {
-                ConversionResult result = SelectionConverter.Run(settings, owner);
+                ConversionResult result = SelectionConverter.Run(settings, owner, action);
                 _marshal.BeginInvoke(() => Report(result));
             }
             finally
@@ -126,6 +133,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
                 break;
             case ConversionOutcome.ClipboardBusy:
                 Notify("Clipboard is busy", "Another application is holding the clipboard. Try again.", ToolTipIcon.Warning);
+                break;
+            case ConversionOutcome.NotEnglish:
+                Notify("Left unchanged", "The Caps Lock fix only applies to English text.", ToolTipIcon.Warning);
                 break;
         }
     }
@@ -160,9 +170,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
             return;
         }
 
-        // Pick up edits made to the file by hand, and free the chord so it can be captured in the dialog.
+        // Pick up edits made to the file by hand, and free the chords so they can be captured in the dialog.
         _settings = Settings.Load();
-        _hotKeyWindow.Unregister();
+        _hotKeyWindow.UnregisterAll();
 
         _settingsForm = new SettingsForm(_settings);
         _settingsForm.FormClosed += (_, _) =>
@@ -183,14 +193,14 @@ internal sealed class TrayApplicationContext : ApplicationContext
     {
         _autoPasteItem.Checked = _settings.AutoPaste;
         _startupItem.Checked = StartupRegistration.IsEnabled();
-        RegisterHotKey(showErrors: true);
+        RegisterHotKeys(showErrors: true);
         UpdateTooltip();
     }
 
     private void UpdateTooltip()
     {
         // NotifyIcon.Text is capped at 63 characters.
-        _notifyIcon.Text = Truncate($"LangFix - {_settings.GetHotKey()} converts the selection", 63);
+        _notifyIcon.Text = Truncate($"LangFix - {_settings.GetHotKey()} layout, {_settings.GetCapsHotKey()} caps", 63);
     }
 
     private void Notify(string title, string message, ToolTipIcon icon)

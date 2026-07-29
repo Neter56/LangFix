@@ -3,12 +3,17 @@ using System.Windows.Forms;
 
 namespace LangFix;
 
-/// <summary>Message-only window that owns the global hotkey registration.</summary>
+/// <summary>What a hotkey does. The value doubles as the Win32 hotkey id.</summary>
+internal enum HotKeyAction
+{
+    ConvertLayout = 0xB0B0,
+    FixCase = 0xB0B1,
+}
+
+/// <summary>Message-only window that owns the global hotkey registrations.</summary>
 internal sealed class HotKeyWindow : NativeWindow, IDisposable
 {
-    private const int HotKeyId = 0xB0B0;
-
-    private bool _registered;
+    private readonly HashSet<HotKeyAction> _registered = new();
 
     public HotKeyWindow()
     {
@@ -20,37 +25,48 @@ internal sealed class HotKeyWindow : NativeWindow, IDisposable
         });
     }
 
-    public event EventHandler? HotKeyPressed;
+    public event EventHandler<HotKeyAction>? HotKeyPressed;
 
-    public void Register(HotKeyDefinition hotKey)
+    public void Register(HotKeyAction action, HotKeyDefinition hotKey)
     {
-        Unregister();
+        Unregister(action);
 
         uint modifiers = hotKey.Modifiers | NativeMethods.MOD_NOREPEAT;
-        if (!NativeMethods.RegisterHotKey(Handle, HotKeyId, modifiers, (uint)hotKey.Key))
+        if (!NativeMethods.RegisterHotKey(Handle, (int)action, modifiers, (uint)hotKey.Key))
         {
             throw new Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
                 $"Could not register the hotkey '{hotKey}'. It is probably taken by another application.");
         }
 
-        _registered = true;
+        _registered.Add(action);
     }
 
-    public void Unregister()
+    public void Unregister(HotKeyAction action)
     {
-        if (_registered)
+        if (_registered.Remove(action))
         {
-            NativeMethods.UnregisterHotKey(Handle, HotKeyId);
-            _registered = false;
+            NativeMethods.UnregisterHotKey(Handle, (int)action);
+        }
+    }
+
+    public void UnregisterAll()
+    {
+        foreach (HotKeyAction action in _registered.ToArray())
+        {
+            Unregister(action);
         }
     }
 
     protected override void WndProc(ref Message m)
     {
-        if (m.Msg == NativeMethods.WM_HOTKEY && m.WParam.ToInt32() == HotKeyId)
+        if (m.Msg == NativeMethods.WM_HOTKEY)
         {
-            HotKeyPressed?.Invoke(this, EventArgs.Empty);
-            return;
+            var action = (HotKeyAction)m.WParam.ToInt32();
+            if (_registered.Contains(action))
+            {
+                HotKeyPressed?.Invoke(this, action);
+                return;
+            }
         }
 
         base.WndProc(ref m);
@@ -58,7 +74,7 @@ internal sealed class HotKeyWindow : NativeWindow, IDisposable
 
     public void Dispose()
     {
-        Unregister();
+        UnregisterAll();
         DestroyHandle();
     }
 }

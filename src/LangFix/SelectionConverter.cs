@@ -5,6 +5,7 @@ internal enum ConversionOutcome
     Converted,
     NoSelection,
     ClipboardBusy,
+    NotEnglish,
 }
 
 internal sealed record ConversionResult(ConversionOutcome Outcome, string? Original = null, string? Converted = null);
@@ -19,7 +20,7 @@ internal static class SelectionConverter
     private const int PollIntervalMs = 25;
     private const int PasteSettleMs = 250;
 
-    public static ConversionResult Run(Settings settings, IntPtr clipboardOwner)
+    public static ConversionResult Run(Settings settings, IntPtr clipboardOwner, HotKeyAction action)
     {
         string? backup = ClipboardNative.GetText();
 
@@ -37,7 +38,21 @@ internal static class SelectionConverter
                 return new ConversionResult(ConversionOutcome.NoSelection);
             }
 
-            string converted = LayoutConverter.Convert(selection);
+            string converted;
+            if (action == HotKeyAction.FixCase)
+            {
+                if (!CaseConverter.TryFix(selection, out string? cased))
+                {
+                    return new ConversionResult(ConversionOutcome.NotEnglish, selection);
+                }
+
+                converted = cased;
+            }
+            else
+            {
+                converted = LayoutConverter.Convert(selection);
+            }
+
             if (!ClipboardNative.SetText(converted, clipboardOwner))
             {
                 return new ConversionResult(ConversionOutcome.ClipboardBusy);

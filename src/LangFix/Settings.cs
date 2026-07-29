@@ -14,6 +14,9 @@ public sealed class Settings
     /// <summary>Hotkey chord, e.g. "F10", "Ctrl+Shift+X", "Win+H".</summary>
     public string HotKey { get; set; } = "F10";
 
+    /// <summary>Hotkey that flips the case of English text typed with Caps Lock on.</summary>
+    public string CapsHotKey { get; set; } = "Shift+F10";
+
     /// <summary>Paste the converted text back over the selection. When false, it is only put on the clipboard.</summary>
     public bool AutoPaste { get; set; } = true;
 
@@ -62,4 +65,7 @@ public sealed class Settings
 
     public HotKeyDefinition GetHotKey() =>
         HotKeyDefinition.TryParse(HotKey, out HotKeyDefinition parsed) ? parsed : HotKeyDefinition.Default;
+
+    public HotKeyDefinition GetCapsHotKey() =>
+        HotKeyDefinition.TryParse(CapsHotKey, out HotKeyDefinition parsed) ? parsed : HotKeyDefinition.CapsDefault;
 }

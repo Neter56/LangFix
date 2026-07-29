@@ -7,6 +7,7 @@ namespace LangFix;
 public sealed record HotKeyDefinition(uint Modifiers, Keys Key)
 {
     public static readonly HotKeyDefinition Default = new(0, Keys.F10);
+    public static readonly HotKeyDefinition CapsDefault = new(NativeMethods.MOD_SHIFT, Keys.F10);
 
     public static bool TryParse(string? text, out HotKeyDefinition hotKey)
     {

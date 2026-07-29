@@ -2,6 +2,23 @@
 
 All notable changes to LangFix are listed here. Versions follow [semantic versioning](https://semver.org).
 
+## 1.1.0
+
+**Caps Lock fix**
+
+- New second hotkey — `Shift+F10` by default — flips the case of the selected text, so a sentence
+  typed with Caps Lock stuck on (`tHIS SENTENCE WRITTEN WITH CAPS LOCK ON`) becomes
+  `This sentence written with caps lock on`.
+- The fix only applies to **English** text. If the selection contains letters from another script
+  (Hebrew, for example) or no Latin letters at all, nothing is changed and a *Left unchanged*
+  notification explains why.
+- The layout conversion hotkey (`F10`) is untouched and keeps working exactly as before.
+- Settings dialog now has a second hotkey picker (**Fix CAPS LOCK**) with its own **Reset**
+  button, and refuses to save two identical chords.
+- New tray menu item **Fix CAPS LOCK in selection** for running the fix without the hotkey.
+- New `CapsHotKey` key in `%APPDATA%\LangFix\settings.json`.
+- `--selftest` now covers the case fixer as well as the layout mapping.
+
 ## 1.0.1
 
 **Settings GUI**
