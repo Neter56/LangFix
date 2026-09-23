@@ -19,6 +19,12 @@ All notable changes to LangFix are listed here. Versions follow [semantic versio
 - New `CapsHotKey` key in `%APPDATA%\LangFix\settings.json`.
 - `--selftest` now covers the case fixer as well as the layout mapping.
 
+**Installer**
+
+- LangFix now ships as an MSI. It installs to `C:\Program Files\LangFix`, adds a Start menu
+  entry and registers the app to start when you sign in.
+- The .NET runtime is bundled, so there is no prerequisite to install first.
+
 ## 1.0.1
 
 **Settings GUI**

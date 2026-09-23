@@ -16,6 +16,33 @@ Caught Caps Lock too late? Select the text and press **Shift+F10**:
 tHIS SENTENCE WRITTEN WITH CAPS LOCK ON   ->   This sentence written with caps lock on
 ```
 
+## Install
+
+Download **`LangFix-1.1.0-x64.msi`** from the [latest release](https://github.com/Neter56/LangFix/releases/latest)
+and run it. Windows will ask for administrator approval because the app is installed for every
+user on the machine.
+
+The installer:
+
+- puts `LangFix.exe` in `C:\Program Files\LangFix`,
+- adds a **Start menu** entry,
+- registers LangFix to **start automatically when you sign in**,
+- offers to start it straight away on the last page.
+
+Nothing else is needed — the runtime is bundled, so there is no .NET prerequisite.
+
+Once it is running, look for the LangFix icon in the notification area. Auto-start can be turned
+off at any time from the tray menu (**Start with Windows**) or in **Settings…**.
+
+To remove it, use **Settings → Apps → Installed apps → LangFix → Uninstall**. Your preferences in
+`%APPDATA%\LangFix` are left in place.
+
+Silent install, for deploying it across several machines:
+
+```powershell
+msiexec /i LangFix-1.1.0-x64.msi /qn
+```
+
 ## Hotkeys
 
 | Hotkey | Action |
@@ -37,7 +64,9 @@ Both chords can be changed in the settings window.
 4. The converted text is put on the clipboard, `Ctrl+V` is injected, and the previous clipboard
    contents are restored.
 
-## Build
+## Build from source
+
+Only needed to develop LangFix — to just use it, install the MSI above.
 
 Requires the [.NET 8 SDK](https://dotnet.microsoft.com/download).
 
@@ -46,11 +75,18 @@ cd src\LangFix
 dotnet build -c Release
 ```
 
-Produce a single self-contained-ish executable:
+Run it without installing:
 
 ```powershell
 dotnet publish src\LangFix\LangFix.csproj -c Release -o publish
 .\publish\LangFix.exe
+```
+
+Rebuild the installer itself into `artifacts\` (needs the WiX 5 CLI,
+`dotnet tool install --global wix`):
+
+```powershell
+pwsh -File tools\build-installer.ps1
 ```
 
 ## Usage
@@ -99,8 +135,8 @@ See [RELEASE-NOTES.md](RELEASE-NOTES.md).
 ## Verifying the mapping
 
 ```powershell
-.\publish\LangFix.exe --selftest
-.\publish\LangFix.exe --selftest "Eמעךןדי בישרשבאקרד"
+& "$env:ProgramFiles\LangFix\LangFix.exe" --selftest
+& "$env:ProgramFiles\LangFix\LangFix.exe" --selftest "Eמעךןדי בישרשבאקרד"
 ```
 
 With text supplied, the layout conversion and the Caps Lock fix are both printed.

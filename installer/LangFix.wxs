@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSI package for LangFix. Build it with tools/build-installer.ps1, which publishes the
+  payload and supplies every $(var.*) value used below.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="LangFix"
+           Manufacturer="Eli Sagie"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="7D5F03A1-FF9A-4F72-81D3-36A1E63CF989"
+           Scope="perMachine"
+           Compressed="yes"
+           InstallerVersion="500">
+
+    <SummaryInformation Description="LangFix - Hebrew/English keyboard layout and Caps Lock fixer" />
+
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="LangFix.ico" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="LangFix.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Neter56/LangFix" />
+
+    <!-- The tray app keeps LangFix.exe open, which would otherwise make upgrades ask for a reboot. -->
+    <util:CloseApplication Id="CloseLangFix"
+                           Target="LangFix.exe"
+                           CloseMessage="yes"
+                           RebootPrompt="no"
+                           TerminateProcess="0" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="LangFix" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="LangFix" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+
+    <ComponentGroup Id="ProductComponents">
+      <Component Id="MainExecutable" Directory="INSTALLFOLDER" Guid="877CD962-85A3-4F72-844C-42AE466EFD9B">
+        <File Id="LangFixExe" Source="$(var.PayloadExe)" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut"
+                    Directory="ProgramMenuFolder"
+                    Name="LangFix"
+                    Description="Fix text typed with the wrong keyboard layout"
+                    Icon="LangFix.ico"
+                    Advertise="no" />
+        </File>
+      </Component>
+
+      <!-- Same Run value the app's own "Start with Windows" toggle writes, so the tray menu
+           reflects the installer's choice and can switch it off again. -->
+      <Component Id="AutoStartEntry" Directory="INSTALLFOLDER" Guid="21316A2A-C698-41F8-98F1-AD41B93F266E">
+        <RegistryValue Root="HKCU"
+                       Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                       Name="LangFix"
+                       Type="string"
+                       Value="&quot;[INSTALLFOLDER]LangFix.exe&quot;"
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
+
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Start LangFix now" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#LangFixExe]" />
+    <CustomAction Id="LaunchApplication" DllEntry="WixShellExec" Impersonate="yes" BinaryRef="Wix4UtilCA_X64" />
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <UI>
+      <Publish Dialog="ExitDialog"
+               Control="Finish"
+               Event="DoAction"
+               Value="LaunchApplication"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+    </UI>
+
+  </Package>
+</Wix>
