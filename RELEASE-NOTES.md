@@ -2,6 +2,18 @@
 
 All notable changes to LangFix are listed here. Versions follow [semantic versioning](https://semver.org).
 
+## 1.1.1
+
+**Input language switching**
+
+- New **Switch the Windows input language to the converted language** checkbox in **Settings…**.
+  When ticked, `F10` also changes the Windows input language to match the converted text:
+  Hebrew → English switches to English, English → Hebrew switches to Hebrew.
+- Off by default; when unticked the input language is never changed.
+- The Caps Lock fix (`Shift+F10`) does not change the input language.
+- If the target language has no installed keyboard layout, the input language is left as is.
+- New `SwitchInputLanguage` key in `%APPDATA%\LangFix\settings.json`.
+
 ## 1.1.0
 
 **Caps Lock fix**

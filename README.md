@@ -18,7 +18,7 @@ tHIS SENTENCE WRITTEN WITH CAPS LOCK ON   ->   This sentence written with caps l
 
 ## Install
 
-Download **`LangFix-1.1.0-x64.msi`** from the [latest release](https://github.com/Neter56/LangFix/releases/latest)
+Download **`LangFix-1.1.1-x64.msi`** from the [latest release](https://github.com/Neter56/LangFix/releases/latest)
 and run it. Windows will ask for administrator approval because the app is installed for every
 user on the machine.
 
@@ -40,7 +40,7 @@ To remove it, use **Settings → Apps → Installed apps → LangFix → Uninsta
 Silent install, for deploying it across several machines:
 
 ```powershell
-msiexec /i LangFix-1.1.0-x64.msi /qn
+msiexec /i LangFix-1.1.1-x64.msi /qn
 ```
 
 ## Hotkeys
@@ -98,6 +98,9 @@ pwsh -File tools\build-installer.ps1
 - **Start with Windows** — writes `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
 - **Settings…** — opens a small window that reads and writes `%APPDATA%\LangFix\settings.json`.
   Click either hotkey box and press the chord you want; **Save** applies it immediately.
+  Tick **Switch the Windows input language to the converted language** to have the input language
+  follow `F10` (Hebrew → English switches to English, English → Hebrew switches to Hebrew);
+  unticked (the default) leaves the input language alone.
 - **Reload settings** — re-reads the file after editing it in an external editor.
 
 ### settings.json
@@ -108,7 +111,8 @@ pwsh -File tools\build-installer.ps1
   "CapsHotKey": "Shift+F10",
   "AutoPaste": true,
   "RestoreClipboard": true,
-  "ShowNotifications": false
+  "ShowNotifications": false,
+  "SwitchInputLanguage": false
 }
 ```
 

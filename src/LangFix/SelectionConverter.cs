@@ -39,6 +39,7 @@ internal static class SelectionConverter
             }
 
             string converted;
+            LayoutConverter.Direction direction = LayoutConverter.Direction.Auto;
             if (action == HotKeyAction.FixCase)
             {
                 if (!CaseConverter.TryFix(selection, out string? cased))
@@ -50,7 +51,8 @@ internal static class SelectionConverter
             }
             else
             {
-                converted = LayoutConverter.Convert(selection);
+                direction = LayoutConverter.Detect(selection);
+                converted = LayoutConverter.Convert(selection, direction);
             }
 
             if (!ClipboardNative.SetText(converted, clipboardOwner))
@@ -68,6 +70,11 @@ internal static class SelectionConverter
             {
                 // Leave the result on the clipboard for the user to paste.
                 backup = null;
+            }
+
+            if (settings.SwitchInputLanguage && action != HotKeyAction.FixCase)
+            {
+                InputLanguageSwitcher.SwitchTo(direction);
             }
 
             return new ConversionResult(ConversionOutcome.Converted, selection, converted);

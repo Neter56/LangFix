@@ -23,6 +23,9 @@ public sealed class Settings
     /// <summary>Restore whatever text was on the clipboard before the conversion.</summary>
     public bool RestoreClipboard { get; set; } = true;
 
+    /// <summary>After a layout conversion, switch the Windows input language to the converted language.</summary>
+    public bool SwitchInputLanguage { get; set; } = false;
+
     /// <summary>Show a tray balloon after each conversion.</summary>
     public bool ShowNotifications { get; set; } = false;
 

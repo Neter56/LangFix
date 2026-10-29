@@ -13,6 +13,7 @@ internal sealed class SettingsForm : Form
     private readonly CheckBox _restoreClipboard;
     private readonly CheckBox _showNotifications;
     private readonly CheckBox _startWithWindows;
+    private readonly CheckBox _switchInputLanguage;
     private HotKeyDefinition _hotKey;
     private HotKeyDefinition _capsHotKey;
 
@@ -29,7 +30,7 @@ internal sealed class SettingsForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         ShowInTaskbar = false;
-        ClientSize = new Size(380, 316);
+        ClientSize = new Size(380, 342);
         Padding = new Padding(12);
 
         var hotKeyLabel = new Label
@@ -96,11 +97,12 @@ internal sealed class SettingsForm : Form
         _restoreClipboard = NewCheck("Restore the previous clipboard contents", 142, _settings.RestoreClipboard);
         _showNotifications = NewCheck("Show a tray notification after each conversion", 168, _settings.ShowNotifications);
         _startWithWindows = NewCheck("Start with Windows", 194, StartupRegistration.IsEnabled());
+        _switchInputLanguage = NewCheck("Switch the Windows input language to the converted language", 220, _settings.SwitchInputLanguage);
 
         var openJson = new LinkLabel
         {
             Text = "Open settings.json",
-            Location = new Point(12, 232),
+            Location = new Point(12, 258),
             AutoSize = true,
         };
         openJson.LinkClicked += (_, _) => OpenSettingsFile();
@@ -110,7 +112,7 @@ internal sealed class SettingsForm : Form
         var version = new Label
         {
             Text = $"LangFix {productVersion}",
-            Location = new Point(12, 264),
+            Location = new Point(12, 290),
             AutoSize = true,
             ForeColor = SystemColors.GrayText,
         };
@@ -118,7 +120,7 @@ internal sealed class SettingsForm : Form
         var save = new Button
         {
             Text = "Save",
-            Location = new Point(198, 259),
+            Location = new Point(198, 285),
             Width = 80,
         };
         save.Click += (_, _) =>
@@ -132,7 +134,7 @@ internal sealed class SettingsForm : Form
         var cancel = new Button
         {
             Text = "Cancel",
-            Location = new Point(286, 259),
+            Location = new Point(286, 285),
             Width = 80,
             DialogResult = DialogResult.Cancel,
         };
@@ -141,7 +143,7 @@ internal sealed class SettingsForm : Form
         Controls.AddRange([
             hotKeyLabel, _hotKeyBox, resetHotKey,
             capsLabel, _capsHotKeyBox, resetCapsHotKey, hint,
-            _autoPaste, _restoreClipboard, _showNotifications, _startWithWindows,
+            _autoPaste, _restoreClipboard, _showNotifications, _startWithWindows, _switchInputLanguage,
             openJson, version, save, cancel,
         ]);
 
@@ -222,6 +224,7 @@ internal sealed class SettingsForm : Form
         _settings.AutoPaste = _autoPaste.Checked;
         _settings.RestoreClipboard = _restoreClipboard.Checked;
         _settings.ShowNotifications = _showNotifications.Checked;
+        _settings.SwitchInputLanguage = _switchInputLanguage.Checked;
         _settings.Save();
 
         if (_startWithWindows.Checked != StartupRegistration.IsEnabled())
